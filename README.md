@@ -21,3 +21,7 @@ Bulletin Board
 - Communication from each node->node to update their queues
 
 - Who grants access to the first in queue?
+
+- How to use Ricart Agrawala correctly? How do we change states to wanted/is it random?.
+
+- What is a reply in R&A Algorithm?
