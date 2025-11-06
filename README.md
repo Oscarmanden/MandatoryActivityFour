@@ -16,4 +16,8 @@ Section will eventually gain access
 
 Bulletin Board
 
--print to show
+- Each node/client holds a queue that gets sorted by lampart clock.
+
+- Communication from each node->node to update their queues
+
+- Who grants access to the first in queue?
