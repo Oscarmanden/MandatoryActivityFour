@@ -1,0 +1,20 @@
+syntax = "proto3";
+option go_package = "MandatoryActivityFour/grpc/proto";
+
+message Request {
+string state = 1;
+int64 lamportTime = 2;
+string client = 3;
+}
+
+message Response {
+string state = 1;
+int64 lamportTime = 2;
+string client = 3;
+string response = 4;
+}
+
+
+service Maf {
+rpc ClientRequest(Request) returns (Response);
+}
