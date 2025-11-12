@@ -2,9 +2,13 @@ package main
 
 import (
 	proto "MandatoryActivityFour/grpc"
+	"bufio"
 	"context"
+	"flag"
 	"fmt"
 	"net"
+	"os"
+	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -21,9 +25,10 @@ var peers = map[int64]string{
 	2: "localhost:50052",
 	3: "localhost:50053",
 }
-var clients = map[int64]proto.MafClient{}
+var clients = map[int64]proto.MafClient{} // map med clients hvor der er established connection
+// hvor id er key, og value er forbindelsen
 
-// the queue logic for client from https://www.geeksforgeeks.org/go-language/queue-in-go-language/
+// the queue logic for Nodes from https://www.geeksforgeeks.org/go-language/queue-in-go-language/
 func enqueue(queue []int64, element int64) []int64 {
 	queue = append(queue, element)
 	fmt.Println("Enqueued:", element)
@@ -44,23 +49,40 @@ type Server struct {
 }
 
 func main() {
+	// bruger flag så vi ikke behøves flere node filer, men bare kan skrive: go run .\Nodes\node1.go --id=x --port=:xxxxx i tre terminaler
+	id := flag.Int("id", 1, "Node ID")
+	port := flag.String("port", ":50051", "Port to listen on")
+	flag.Parse()
+	MyId = int64(*id)
+	myPort = *port
+
+	// server logikken:
 	listener, err := net.Listen("tcp", myPort)
 	if err != nil {
 		fmt.Println("failed to listen:", err)
 		return
 	}
 	grpcServer := grpc.NewServer()
-
-	proto.RegisterMafServer(grpcServer, &Server{})
+	proto.RegisterMafServer(grpcServer, &Server{}) // Det her NodeRequest bliver kaldt fra, hvis vi modtager requests.
 	go grpcServer.Serve(listener)
 
-	//connect to peers
+	//Client logikken:
+	// Her establisher vi connection til de andre noder og smider dem i mappet clients.
 	for peerID, addr := range peers {
 		conn, _ := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		clients[peerID] = proto.NewMafClient(conn)
 	}
 
-	RequestCS()
+	//skriv wanted i terminal for at starte nodens process for at tilgå cs
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		text, _ := reader.ReadString('\n')
+		text = strings.TrimSpace(text)
+		if text == "wanted" {
+			RequestCS()
+		}
+	}
+
 }
 
 func RequestCS() {
@@ -70,20 +92,20 @@ func RequestCS() {
 }
 
 func SendAndWaitForReplies() {
-	var replies = 2
-	for pid, cli := range clients {
-		if pid == MyId {
-			continue
-		}
+	var missingReplies = len(clients)
+	for _, cli := range clients {
 		resp, _ := cli.NodeRequest(context.Background(), &proto.Request{LamportTime: ts, Nid: MyId})
 		if resp.Grant == true {
-			replies--
+			missingReplies--
 		}
 	}
-	csAccess()
+	if missingReplies == 0 {
+		csAccess()
+	}
 }
 
 func csAccess() {
+	state = "held"
 	fmt.Println(MyId, "has Accessed the Critical Section")
 	releaseCs()
 }
@@ -94,13 +116,18 @@ func releaseCs() {
 }
 
 func replyQueue() {
+	if len(queue) == 0 {
+		fmt.Println("The queue is empty")
+		return
+	}
+
 	for len(queue) > 0 {
 		var peerID int64
 		peerID, queue = dequeue(queue)
 
 		replyClient, ok := clients[int64(peerID)]
 		if !ok {
-			fmt.Println("No reply client found for peer", peerID)
+			fmt.Println("No reply Nodes found for peer:", peerID)
 			continue
 		}
 
@@ -110,44 +137,24 @@ func replyQueue() {
 
 		_, err := replyClient.Reply(context.Background(), response)
 		if err != nil {
-			fmt.Println("Failed to send reply to", peerID, ":", err)
+			fmt.Println("Failed to send reply to:", peerID, ":", err)
 		} else {
-			fmt.Println("Sent reply to", peerID)
+			fmt.Println("Sent reply to:", peerID)
 		}
 	}
 }
 
-func replyToRequest() {
-
-}
-
-func onReceiveRequest(req *proto.Request) {
-	reqClient := req.Nid
-	reqTimestamp := req.LamportTime
-	if state == "held" || (state == "wanted" && ((ts < reqTimestamp) && (id < req.Nid))) {
-		enqueue(queue, reqClient)
-	} else {
-		//reply() // to reqClient
-	}
-}
-
+// NodeRequest håndtere når noden modtager requests
 func (s *Server) NodeRequest(ctx context.Context, req *proto.Request) (*proto.Response, error) {
-	fmt.Println("Received request from node ", req.Nid)
+	fmt.Println("Received request from node: ", req.Nid)
 
-	// Update Lamport clock
-	if req.LamportTime > ts {
-		ts = req.LamportTime
-	}
-	ts++
-	onReceiveRequest(req)
+	ts = max(ts, req.LamportTime) + 1
 
-	if len(queue) > 0 {
-		replyQueue()
-		return &proto.Response{}, nil
+	if state == "held" || (state == "wanted" && (ts < req.LamportTime || (ts == req.LamportTime && id < req.Nid))) {
+		enqueue(queue, req.Nid)
+		return &proto.Response{Grant: false}, nil
 	}
+
+	fmt.Println("Sending grant access to: ", req.Nid)
 	return &proto.Response{Grant: true}, nil
-}
-
-func Reply(ctx context.Context, req *proto.RecievedResponseButEmpty) {
-
 }

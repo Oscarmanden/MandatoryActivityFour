@@ -23,7 +23,7 @@ const (
 	Maf_Reply_FullMethodName       = "/Maf/Reply"
 )
 
-// MafClient is the client API for Maf service.
+// MafClient is the Nodes API for Maf service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MafClient interface {
