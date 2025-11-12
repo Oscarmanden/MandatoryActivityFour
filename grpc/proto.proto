@@ -2,20 +2,14 @@ syntax = "proto3";
 option go_package = "MandatoryActivityFour/grpc/proto";
 
 message Request {
-int64 lamportTime = 1;
-int64 nid = 2;
+  int64 lamportTime = 1;
+  int64 nid = 2;
 }
 
 message Response {
-bool grant = 1;
+  bool grant = 1;
 }
-
-message RecievedResponseButEmpty {
-}
-
-
 
 service Maf {
-rpc NodeRequest(Request) returns (Response);
-rpc Reply(Response) returns (RecievedResponseButEmpty);
+  rpc NodeRequest(Request) returns (Response);
 }

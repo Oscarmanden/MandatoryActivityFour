@@ -117,42 +117,6 @@ func (x *Response) GetGrant() bool {
 	return false
 }
 
-type RecievedResponseButEmpty struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RecievedResponseButEmpty) Reset() {
-	*x = RecievedResponseButEmpty{}
-	mi := &file_proto_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RecievedResponseButEmpty) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RecievedResponseButEmpty) ProtoMessage() {}
-
-func (x *RecievedResponseButEmpty) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RecievedResponseButEmpty.ProtoReflect.Descriptor instead.
-func (*RecievedResponseButEmpty) Descriptor() ([]byte, []int) {
-	return file_proto_proto_rawDescGZIP(), []int{2}
-}
-
 var File_proto_proto protoreflect.FileDescriptor
 
 const file_proto_proto_rawDesc = "" +
@@ -162,11 +126,9 @@ const file_proto_proto_rawDesc = "" +
 	"\vlamportTime\x18\x01 \x01(\x03R\vlamportTime\x12\x10\n" +
 	"\x03nid\x18\x02 \x01(\x03R\x03nid\" \n" +
 	"\bResponse\x12\x14\n" +
-	"\x05grant\x18\x01 \x01(\bR\x05grant\"\x1a\n" +
-	"\x18RecievedResponseButEmpty2X\n" +
+	"\x05grant\x18\x01 \x01(\bR\x05grant2)\n" +
 	"\x03Maf\x12\"\n" +
-	"\vNodeRequest\x12\b.Request\x1a\t.Response\x12-\n" +
-	"\x05Reply\x12\t.Response\x1a\x19.RecievedResponseButEmptyB\"Z MandatoryActivityFour/grpc/protob\x06proto3"
+	"\vNodeRequest\x12\b.Request\x1a\t.ResponseB\"Z MandatoryActivityFour/grpc/protob\x06proto3"
 
 var (
 	file_proto_proto_rawDescOnce sync.Once
@@ -180,19 +142,16 @@ func file_proto_proto_rawDescGZIP() []byte {
 	return file_proto_proto_rawDescData
 }
 
-var file_proto_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_proto_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_proto_proto_goTypes = []any{
-	(*Request)(nil),                  // 0: Request
-	(*Response)(nil),                 // 1: Response
-	(*RecievedResponseButEmpty)(nil), // 2: RecievedResponseButEmpty
+	(*Request)(nil),  // 0: Request
+	(*Response)(nil), // 1: Response
 }
 var file_proto_proto_depIdxs = []int32{
 	0, // 0: Maf.NodeRequest:input_type -> Request
-	1, // 1: Maf.Reply:input_type -> Response
-	1, // 2: Maf.NodeRequest:output_type -> Response
-	2, // 3: Maf.Reply:output_type -> RecievedResponseButEmpty
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	1, // 1: Maf.NodeRequest:output_type -> Response
+	1, // [1:2] is the sub-list for method output_type
+	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -209,7 +168,7 @@ func file_proto_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_proto_rawDesc), len(file_proto_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

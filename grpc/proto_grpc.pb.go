@@ -20,7 +20,6 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Maf_NodeRequest_FullMethodName = "/Maf/NodeRequest"
-	Maf_Reply_FullMethodName       = "/Maf/Reply"
 )
 
 // MafClient is the client API for Maf service.
@@ -28,7 +27,6 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MafClient interface {
 	NodeRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
-	Reply(ctx context.Context, in *Response, opts ...grpc.CallOption) (*RecievedResponseButEmpty, error)
 }
 
 type mafClient struct {
@@ -49,22 +47,11 @@ func (c *mafClient) NodeRequest(ctx context.Context, in *Request, opts ...grpc.C
 	return out, nil
 }
 
-func (c *mafClient) Reply(ctx context.Context, in *Response, opts ...grpc.CallOption) (*RecievedResponseButEmpty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RecievedResponseButEmpty)
-	err := c.cc.Invoke(ctx, Maf_Reply_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // MafServer is the server API for Maf service.
 // All implementations must embed UnimplementedMafServer
 // for forward compatibility.
 type MafServer interface {
 	NodeRequest(context.Context, *Request) (*Response, error)
-	Reply(context.Context, *Response) (*RecievedResponseButEmpty, error)
 	mustEmbedUnimplementedMafServer()
 }
 
@@ -77,9 +64,6 @@ type UnimplementedMafServer struct{}
 
 func (UnimplementedMafServer) NodeRequest(context.Context, *Request) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NodeRequest not implemented")
-}
-func (UnimplementedMafServer) Reply(context.Context, *Response) (*RecievedResponseButEmpty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Reply not implemented")
 }
 func (UnimplementedMafServer) mustEmbedUnimplementedMafServer() {}
 func (UnimplementedMafServer) testEmbeddedByValue()             {}
@@ -120,24 +104,6 @@ func _Maf_NodeRequest_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Maf_Reply_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Response)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MafServer).Reply(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Maf_Reply_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MafServer).Reply(ctx, req.(*Response))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Maf_ServiceDesc is the grpc.ServiceDesc for Maf service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -148,10 +114,6 @@ var Maf_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "NodeRequest",
 			Handler:    _Maf_NodeRequest_Handler,
-		},
-		{
-			MethodName: "Reply",
-			Handler:    _Maf_Reply_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
