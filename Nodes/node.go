@@ -17,11 +17,12 @@ import (
 var state = "released"
 var MyId int64
 var ts int64 = 1
-var myPort string = ":50051"
+var myPort string
 var queue []int64
 
 var id = int64(1)
 var peers = map[int64]string{
+	1: "localhost:50051",
 	2: "localhost:50052",
 	3: "localhost:50053",
 }
@@ -69,8 +70,10 @@ func main() {
 	//Client logikken:
 	// Her establisher vi connection til de andre noder og smider dem i mappet clients.
 	for peerID, addr := range peers {
-		conn, _ := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		clients[peerID] = proto.NewMafClient(conn)
+		if peerID != MyId {
+			conn, _ := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			clients[peerID] = proto.NewMafClient(conn)
+		}
 	}
 
 	//skriv wanted i terminal for at starte nodens process for at tilgå cs
@@ -82,7 +85,6 @@ func main() {
 			RequestCS()
 		}
 	}
-
 }
 
 func RequestCS() {
@@ -94,7 +96,10 @@ func RequestCS() {
 func SendAndWaitForReplies() {
 	var missingReplies = len(clients)
 	for _, cli := range clients {
-		resp, _ := cli.NodeRequest(context.Background(), &proto.Request{LamportTime: ts, Nid: MyId})
+		resp, err := cli.NodeRequest(context.Background(), &proto.Request{LamportTime: ts, Nid: MyId})
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
 		if resp.Grant == true {
 			missingReplies--
 		}

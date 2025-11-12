@@ -1,5 +1,0 @@
-package Server
-
-func main() {
-
-}
