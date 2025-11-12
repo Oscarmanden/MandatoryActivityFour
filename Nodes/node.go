@@ -17,6 +17,8 @@ var MyId int64
 var ts int64 = 1
 var myPort string
 var queue []int64
+var missingReplies int
+var myReqTS int64 = -1
 
 var id = int64(1)
 var peers = map[int64]string{
@@ -99,11 +101,12 @@ func main() {
 func RequestCS() {
 	state = "wanted"
 	ts = ts + 1
+	myReqTS = ts
+	missingReplies = len(clients)
 	SendAndWaitForReplies()
 }
 
 func SendAndWaitForReplies() {
-	var missingReplies = len(clients)
 	for _, cli := range clients {
 		resp, err := cli.NodeRequest(context.Background(), &proto.Request{LamportTime: ts, Nid: MyId})
 		if err != nil {
@@ -168,7 +171,7 @@ func (s *Server) NodeRequest(ctx context.Context, req *proto.Request) (*proto.Re
 
 	ts = max(ts, req.LamportTime) + 1
 
-	if state == "held" || (state == "wanted" && (ts < req.LamportTime || (ts == req.LamportTime && id < req.Nid))) {
+	if state == "held" || (state == "wanted" && (myReqTS < req.LamportTime || (myReqTS == req.LamportTime && MyId < req.Nid))) {
 		queue = append(queue, req.Nid)
 		return &proto.Response{Grant: false}, nil
 	}
@@ -178,8 +181,11 @@ func (s *Server) NodeRequest(ctx context.Context, req *proto.Request) (*proto.Re
 }
 
 func (s *Server) Reply(ctx context.Context, resp *proto.Response) (*proto.RecievedResponseButEmpty, error) {
-	fmt.Println("Send Reply to the queue")
-
+	if state == "wanted" {
+		missingReplies--
+		if missingReplies == 0 {
+			csAccess()
+		}
+	}
 	return &proto.RecievedResponseButEmpty{}, nil
-
 }
