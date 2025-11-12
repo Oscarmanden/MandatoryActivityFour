@@ -5,5 +5,4 @@ Terminal 1: $go run . -id=1 -port=:50051
 Terminal 2: $go run . -id=2 -port=:50052  
 Terminal 3: $go run . -id=3 -port=:50053  
   
-From here you can either 'request' or 'quit' each client.  
-This will demonstrate how 3 seperate clients try to access a critical section.  
+The node will wait 10 seconds and then try to gain access to the critical section by calling RequestCS()
