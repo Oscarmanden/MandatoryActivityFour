@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -25,7 +26,9 @@ var peers = map[int64]string{
 	2: "localhost:50052",
 	3: "localhost:50053",
 }
-var clients = map[int64]proto.MafClient{} // map med clients hvor der er established connection
+var clients = map[int64]proto.MafClient{}
+
+// map med clients hvor der er established connection
 // hvor id er key, og value er forbindelsen
 
 // the queue logic for Nodes from https://www.geeksforgeeks.org/go-language/queue-in-go-language/
@@ -73,13 +76,18 @@ func main() {
 		clients[peerID] = proto.NewMafClient(conn)
 	}
 
+	fmt.Println("Node", MyId, "listening on", myPort)
+	fmt.Println("Type 'request' to try the CS, or 'quit' to exit.")
+
 	//skriv wanted i terminal for at starte nodens process for at tilgå cs
 	for {
 		reader := bufio.NewReader(os.Stdin)
 		text, _ := reader.ReadString('\n')
 		text = strings.TrimSpace(text)
-		if text == "wanted" {
+		if text == "request" {
 			RequestCS()
+		} else if text == "quit" {
+			return
 		}
 	}
 
@@ -107,6 +115,7 @@ func SendAndWaitForReplies() {
 func csAccess() {
 	state = "held"
 	fmt.Println(MyId, "has Accessed the Critical Section")
+	time.Sleep(5000 * time.Millisecond)
 	releaseCs()
 }
 
