@@ -27,9 +27,7 @@ var peers = map[int64]string{
 	2: "localhost:50052",
 	3: "localhost:50053",
 }
-var clients = map[int64]proto.MafClient{}
-
-// map med clients hvor der er established connection
+var clients = map[int64]proto.MafClient{} // map med clients hvor der er established connection
 // hvor id er key, og value er forbindelsen
 
 // the queue logic for Nodes from https://www.geeksforgeeks.org/go-language/queue-in-go-language/
@@ -126,6 +124,7 @@ func csAccess() {
 
 func releaseCs() {
 	state = "released"
+	fmt.Println("Leaving critical section")
 	replyQueue()
 }
 
