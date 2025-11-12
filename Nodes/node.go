@@ -2,13 +2,10 @@ package main
 
 import (
 	proto "MandatoryActivityFour/grpc"
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
 	"net"
-	"os"
-	"strings"
 	"time"
 
 	"google.golang.org/grpc"
@@ -78,10 +75,14 @@ func main() {
 	}
 
 	fmt.Println("Node", MyId, "listening on", myPort)
-	fmt.Println("Type 'request' to try the CS, or 'quit' to exit.")
+	//fmt.Println("Type 'request' to try the CS, or 'quit' to exit.")
 
-	//skriv wanted i terminal for at starte nodens process for at tilgå cs
+	time.Sleep(10 * time.Second)
+	RequestCS()
 	for {
+	}
+	//skriv wanted i terminal for at starte nodens process for at tilgå cs
+	/*for {
 		reader := bufio.NewReader(os.Stdin)
 		text, _ := reader.ReadString('\n')
 		text = strings.TrimSpace(text)
@@ -91,6 +92,8 @@ func main() {
 			return
 		}
 	}
+
+	*/
 }
 
 func RequestCS() {
@@ -129,6 +132,8 @@ func releaseCs() {
 }
 
 func replyQueue() {
+	fmt.Println("length of queue is:", len(queue))
+
 	if len(queue) == 0 {
 		fmt.Println("The queue is empty")
 		return
@@ -164,10 +169,17 @@ func (s *Server) NodeRequest(ctx context.Context, req *proto.Request) (*proto.Re
 	ts = max(ts, req.LamportTime) + 1
 
 	if state == "held" || (state == "wanted" && (ts < req.LamportTime || (ts == req.LamportTime && id < req.Nid))) {
-		enqueue(queue, req.Nid)
+		queue = append(queue, req.Nid)
 		return &proto.Response{Grant: false}, nil
 	}
 
 	fmt.Println("Sending grant access to: ", req.Nid)
 	return &proto.Response{Grant: true}, nil
+}
+
+func (s *Server) Reply(ctx context.Context, resp *proto.Response) (*proto.RecievedResponseButEmpty, error) {
+	fmt.Println("Send Reply to the queue")
+
+	return &proto.RecievedResponseButEmpty{}, nil
+
 }
